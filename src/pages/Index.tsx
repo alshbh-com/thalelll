@@ -6,6 +6,7 @@ import { Stethoscope, Brain, FileText, Shield } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import jsPDF from 'jspdf';
+import 'jspdf-arabic-support';
 
 import LanguageSelector from '@/components/LanguageSelector';
 import UserInfoForm from '@/components/UserInfoForm';
@@ -212,31 +213,94 @@ This interpretation is for educational purposes only and does not replace medica
 
   // PDF download handler
   const handleDownloadPDF = () => {
-    const pdf = new jsPDF();
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
     
-    // Configure font for Arabic support (you might need to add Arabic font)
-    pdf.setFont('helvetica');
-    pdf.setFontSize(16);
+    // Configure font based on language
+    if (isArabic) {
+      // Enable Arabic support
+      (pdf as any).ArabicSupport = true;
+      pdf.setFont('helvetica');
+      pdf.setLanguage("ar");
+    } else {
+      pdf.setFont('helvetica');
+    }
     
+    pdf.setFontSize(18);
     const title = isArabic ? 'تقرير تحليل النتائج الطبية' : 'Medical Lab Results Report';
-    pdf.text(title, 20, 30);
+    const titleX = isArabic ? 190 : 20; // Right align for Arabic
+    pdf.text(title, titleX, 30, { align: isArabic ? 'right' : 'left' });
     
-    // Add content (simplified for demo)
+    // Add date
     pdf.setFontSize(12);
+    const date = new Date().toLocaleDateString(isArabic ? 'ar-SA' : 'en-US');
+    const dateText = isArabic ? `التاريخ: ${date}` : `Date: ${date}`;
+    const dateX = isArabic ? 190 : 20;
+    pdf.text(dateText, dateX, 45, { align: isArabic ? 'right' : 'left' });
+    
+    // Add content with proper text handling
+    pdf.setFontSize(11);
     const lines = analysisResult.split('\n');
-    let yPosition = 50;
+    let yPosition = 60;
+    const pageHeight = pdf.internal.pageSize.height;
+    const marginBottom = 20;
     
     lines.forEach((line) => {
-      if (yPosition > 270) {
+      if (yPosition > pageHeight - marginBottom) {
         pdf.addPage();
         yPosition = 20;
       }
-      pdf.text(line, 20, yPosition);
-      yPosition += 7;
+      
+      if (line.trim()) {
+        const textX = isArabic ? 190 : 20;
+        const maxWidth = 170; // Maximum width for text
+        
+        // Handle long lines by splitting them
+        const splitLines = pdf.splitTextToSize(line, maxWidth);
+        
+        if (Array.isArray(splitLines)) {
+          splitLines.forEach((splitLine: string) => {
+            if (yPosition > pageHeight - marginBottom) {
+              pdf.addPage();
+              yPosition = 20;
+            }
+            pdf.text(splitLine, textX, yPosition, { 
+              align: isArabic ? 'right' : 'left',
+              maxWidth: maxWidth 
+            });
+            yPosition += 6;
+          });
+        } else {
+          pdf.text(splitLines, textX, yPosition, { 
+            align: isArabic ? 'right' : 'left',
+            maxWidth: maxWidth 
+          });
+          yPosition += 6;
+        }
+      } else {
+        yPosition += 3; // Small space for empty lines
+      }
     });
     
-    const filename = isArabic ? 'تقرير-التحاليل.pdf' : 'lab-report.pdf';
+    // Add footer
+    const footerText = isArabic 
+      ? 'هذه المعلومات تعليمية فقط - يُنصح بمراجعة الطبيب المختص'
+      : 'This information is educational only - Please consult a healthcare professional';
+    pdf.setFontSize(8);
+    const footerX = isArabic ? 190 : 20;
+    pdf.text(footerText, footerX, pageHeight - 10, { align: isArabic ? 'right' : 'left' });
+    
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const filename = isArabic ? `تقرير-التحاليل-${timestamp}.pdf` : `lab-report-${timestamp}.pdf`;
     pdf.save(filename);
+    
+    toast({
+      title: isArabic ? "تم التحميل" : "Downloaded",
+      description: isArabic ? "تم حفظ التقرير بصيغة PDF" : "Report saved as PDF",
+    });
   };
 
   return (
