@@ -18,31 +18,6 @@ serve(async (req) => {
   }
 
   try {
-    // Get user from request
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'No authorization header' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { persistSession: false },
-      global: {
-        headers: { Authorization: authHeader },
-      },
-    });
-
-    // Verify user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
     const { reportText, inputType, userAge, userGender, language } = await req.json();
 
     if (!reportText) {
@@ -51,6 +26,23 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Check if user is authenticated (optional for public use)
+    const authHeader = req.headers.get('Authorization');
+    let userId = null;
+    
+    if (authHeader) {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: { persistSession: false },
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      });
+
+      const { data: { user } } = await supabase.auth.getUser();
+      userId = user?.id || null;
+    }
+
 
     // Create prompt for Gemini based on language
     const isArabic = language === 'ar';
@@ -131,28 +123,35 @@ ${reportText}`;
       });
     }
 
-    // Save analysis result to database
-    const { data: savedResult, error: saveError } = await supabase
-      .from('analysis_results')
-      .insert({
-        user_id: user.id,
-        input_type: inputType || 'manual',
-        original_text: reportText,
-        analysis_result: {
-          text: analysisResult,
-          timestamp: new Date().toISOString(),
-          model: 'gemini-1.5-flash-latest'
-        },
-        user_age: userAge,
-        user_gender: userGender,
-        language: language || 'ar'
-      })
-      .select()
-      .single();
+    // Save analysis result to database only if user is authenticated
+    let savedResult = null;
+    if (userId) {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      const { data, error: saveError } = await supabase
+        .from('analysis_results')
+        .insert({
+          user_id: userId,
+          input_type: inputType || 'manual',
+          original_text: reportText,
+          analysis_result: {
+            text: analysisResult,
+            timestamp: new Date().toISOString(),
+            model: 'gemini-1.5-flash-latest'
+          },
+          user_age: userAge,
+          user_gender: userGender,
+          language: language || 'ar'
+        })
+        .select()
+        .single();
 
-    if (saveError) {
-      console.error('Error saving analysis result:', saveError);
-      // Still return the analysis even if saving fails
+      if (saveError) {
+        console.error('Error saving analysis result:', saveError);
+        // Continue without saving if user is not authenticated
+      } else {
+        savedResult = data;
+      }
     }
 
     console.log('Analysis completed successfully');
