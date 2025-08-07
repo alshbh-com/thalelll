@@ -76,20 +76,43 @@ Important:
 - End with: "This information is educational only. Please consult with a healthcare professional for accurate interpretation and treatment plan."
 - Use simple, understandable language`;
 
-    const prompt = `${systemPrompt}
+    // Check if report text contains image data
+    const isImageData = reportText.startsWith('[IMAGE_DATA]:');
+    let prompt;
+    let requestBody;
+
+    if (isImageData) {
+      // Extract base64 image data
+      const base64Image = reportText.replace('[IMAGE_DATA]:', '');
+      
+      prompt = systemPrompt + '\n\n' + (isArabic ? 'الرجاء تحليل صورة التحاليل الطبية المرفقة:' : 'Please analyze the medical lab results image attached:');
+      
+      requestBody = {
+        contents: [{
+          parts: [
+            { text: prompt },
+            {
+              inline_data: {
+                mime_type: "image/jpeg",
+                data: base64Image
+              }
+            }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      };
+    } else {
+      prompt = `${systemPrompt}
 
 ${isArabic ? 'نتائج التحاليل:' : 'Lab Results:'}
 ${reportText}`;
 
-    console.log('Sending request to Gemini API...');
-
-    // Call Gemini API
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+      requestBody = {
         contents: [{
           parts: [{
             text: prompt
@@ -101,7 +124,19 @@ ${reportText}`;
           topP: 0.95,
           maxOutputTokens: 2048,
         }
-      }),
+      };
+    }
+
+    console.log('Sending request to Gemini API...');
+
+    // Call Gemini API with the appropriate model (vision model for images)
+    const modelName = isImageData ? 'gemini-1.5-flash-latest' : 'gemini-1.5-flash-latest';
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
     });
 
     if (!geminiResponse.ok) {

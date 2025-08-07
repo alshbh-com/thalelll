@@ -39,6 +39,21 @@ const Index = () => {
     });
   };
 
+  // Convert image to base64 for analysis
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
+        const base64 = base64String.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   // Analysis handler
   const handleAnalyze = async () => {
     if (!uploadedFile && !manualInput.trim()) {
@@ -62,8 +77,20 @@ const Index = () => {
     setIsAnalyzing(true);
 
     try {
-      // Get the report text from either file or manual input
-      const reportText = uploadedFile ? `File: ${uploadedFile.name}` : manualInput;
+      let reportText = '';
+      
+      if (uploadedFile) {
+        // If it's an image file, convert to base64
+        if (uploadedFile.type.startsWith('image/')) {
+          const base64 = await convertFileToBase64(uploadedFile);
+          reportText = `[IMAGE_DATA]:${base64}`;
+        } else {
+          // For PDF files, just send the file name for now
+          reportText = `File: ${uploadedFile.name}`;
+        }
+      } else {
+        reportText = manualInput;
+      }
       
       // Get current user session
       const { data: { session } } = await supabase.auth.getSession();
