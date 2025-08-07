@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -25,6 +25,7 @@ const Index = () => {
   const [manualInput, setManualInput] = useState('');
   const [analysisResult, setAnalysisResult] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const isArabic = language === 'ar';
 
@@ -164,6 +165,23 @@ This interpretation is for educational purposes only and does not replace medica
       setIsAnalyzing(false);
     }
   };
+
+  // Auto-scroll to results when they appear
+  useEffect(() => {
+    if (analysisResult && resultsRef.current) {
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+        
+        toast({
+          title: isArabic ? "📋 نتائج التحليل جاهزة" : "📋 Analysis Results Ready",
+          description: isArabic ? "تم عرض نتائج التحليل في الأسفل" : "Analysis results displayed below",
+        });
+      }, 500);
+    }
+  }, [analysisResult, isArabic, toast]);
 
   // PDF download handler
   const handleDownloadPDF = () => {
@@ -357,11 +375,13 @@ This interpretation is for educational purposes only and does not replace medica
 
           {/* Analysis Result */}
           {analysisResult && (
-            <AnalysisResult
-              result={analysisResult}
-              language={language}
-              onDownloadPDF={handleDownloadPDF}
-            />
+            <div ref={resultsRef}>
+              <AnalysisResult
+                result={analysisResult}
+                language={language}
+                onDownloadPDF={handleDownloadPDF}
+              />
+            </div>
           )}
         </div>
       </div>
