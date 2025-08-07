@@ -14,7 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      analysis_results: {
+        Row: {
+          analysis_result: Json
+          created_at: string | null
+          id: string
+          input_type: string
+          language: string | null
+          original_text: string
+          user_age: number | null
+          user_gender: string | null
+          user_id: string
+        }
+        Insert: {
+          analysis_result: Json
+          created_at?: string | null
+          id?: string
+          input_type: string
+          language?: string | null
+          original_text: string
+          user_age?: number | null
+          user_gender?: string | null
+          user_id: string
+        }
+        Update: {
+          analysis_result?: Json
+          created_at?: string | null
+          id?: string
+          input_type?: string
+          language?: string | null
+          original_text?: string
+          user_age?: number | null
+          user_gender?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          age: number | null
+          created_at: string | null
+          full_name: string | null
+          gender: string | null
+          id: string
+          preferred_language: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          age?: number | null
+          created_at?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string
+          preferred_language?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          age?: number | null
+          created_at?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string
+          preferred_language?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      uploaded_files: {
+        Row: {
+          analysis_result_id: string | null
+          created_at: string | null
+          extracted_text: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string
+          id: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          analysis_result_id?: string | null
+          created_at?: string | null
+          extracted_text?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          analysis_result_id?: string | null
+          created_at?: string | null
+          extracted_text?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uploaded_files_analysis_result_id_fkey"
+            columns: ["analysis_result_id"]
+            isOneToOne: false
+            referencedRelation: "analysis_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
