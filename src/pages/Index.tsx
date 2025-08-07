@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Stethoscope, Brain, FileText, Shield } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 import jsPDF from 'jspdf';
 
 import LanguageSelector from '@/components/LanguageSelector';
@@ -37,7 +38,7 @@ const Index = () => {
     });
   };
 
-  // Analysis handler (mock for now)
+  // Analysis handler
   const handleAnalyze = async () => {
     if (!uploadedFile && !manualInput.trim()) {
       toast({
@@ -59,10 +60,35 @@ const Index = () => {
 
     setIsAnalyzing(true);
 
-    // Mock analysis result
-    setTimeout(() => {
-      const mockResult = isArabic ? 
-        `تحليل نتائج الفحوصات الطبية
+    try {
+      // Get the report text from either file or manual input
+      const reportText = uploadedFile ? `File: ${uploadedFile.name}` : manualInput;
+      
+      // Get current user session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // For now, show a demo mode message
+        console.log('No authenticated user - using demo mode');
+      }
+
+      // Call the edge function to analyze the medical report
+      const { data, error } = await supabase.functions.invoke('analyze-medical-report', {
+        body: {
+          reportText: reportText.trim(),
+          inputType: uploadedFile ? 'file' : 'manual',
+          userAge: age ? parseInt(age) : null,
+          userGender: gender,
+          language
+        }
+      });
+
+      if (error) {
+        console.error('Analysis error:', error);
+        
+        // Fallback to mock analysis for demo purposes
+        const mockResult = isArabic ? 
+          `تحليل نتائج الفحوصات الطبية
 
 🔍 التحاليل المرفوعة:
 ${uploadedFile ? `الملف: ${uploadedFile.name}` : 'نتائج مدخلة يدوياً'}
@@ -86,7 +112,7 @@ ${uploadedFile ? `الملف: ${uploadedFile.name}` : 'نتائج مدخلة ي�
 
 ⚠️ تنبيه مهم:
 هذا التفسير تعليمي فقط ولا يغني عن استشارة الطبيب المختص.` :
-        `Medical Lab Results Analysis
+          `Medical Lab Results Analysis
 
 🔍 Uploaded Analysis:
 ${uploadedFile ? `File: ${uploadedFile.name}` : 'Manually entered results'}
@@ -111,14 +137,32 @@ All results are within normal ranges and indicate good health status.
 ⚠️ Important Notice:
 This interpretation is for educational purposes only and does not replace medical consultation.`;
 
-      setAnalysisResult(mockResult);
-      setIsAnalyzing(false);
+        setAnalysisResult(mockResult);
+        
+        toast({
+          title: isArabic ? "وضع تجريبي" : "Demo Mode",
+          description: isArabic ? "عرض نتيجة تجريبية - تحتاج API key" : "Showing demo result - API key needed",
+          variant: "destructive",
+        });
+      } else {
+        setAnalysisResult(data.analysis);
+        
+        toast({
+          title: isArabic ? "تم التحليل بنجاح" : "Analysis Complete",
+          description: isArabic ? "تم تحليل التقرير بواسطة الذكاء الاصطناعي" : "Report analyzed using AI successfully",
+        });
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
       
       toast({
-        title: isArabic ? "تم التحليل" : "Analysis Complete",
-        description: isArabic ? "تم تحليل النتائج بنجاح" : "Results analyzed successfully",
+        title: isArabic ? "خطأ" : "Error",
+        description: isArabic ? "حدث خطأ أثناء التحليل" : "An error occurred during analysis",
+        variant: "destructive",
       });
-    }, 3000);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   // PDF download handler
