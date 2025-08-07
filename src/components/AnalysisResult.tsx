@@ -49,19 +49,49 @@ const AnalysisResult: React.FC<AnalysisResultProps> = ({ result, language, onDow
           </div>
         </div>
 
-        {/* Medical Disclaimer */}
-        <div className="flex items-start gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-yellow-800">
-            <p className="font-medium mb-1">
-              {isArabic ? '⚠️ تنبيه طبي مهم' : '⚠️ Important Medical Notice'}
-            </p>
-            <p>
-              {isArabic 
-                ? 'المعلومات المقدمة هنا لأغراض تعليمية فقط ولا تُعتبر بديلاً عن الاستشارة الطبية المتخصصة. يُنصح بشدة بمراجعة الطبيب المختص لتفسير النتائج والحصول على التشخيص والعلاج المناسب.'
-                : 'The information provided here is for educational purposes only and should not replace professional medical consultation. It is strongly recommended to consult with a qualified healthcare provider for proper interpretation, diagnosis, and treatment.'
-              }
-            </p>
+        {/* Enhanced Medical Disclaimer */}
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm text-yellow-800 space-y-3">
+              <div>
+                <p className="font-medium mb-1">
+                  {isArabic ? '⚠️ تنبيه طبي مهم' : '⚠️ Important Medical Notice'}
+                </p>
+                <p>
+                  {isArabic 
+                    ? 'هذا التفسير مبني على الذكاء الاصطناعي لأغراض تعليمية فقط. لا يُعتبر تشخيصاً طبياً أو بديلاً عن استشارة طبيب مختص.'
+                    : 'This AI-powered interpretation is for educational purposes only. It is not a medical diagnosis or substitute for professional medical consultation.'
+                  }
+                </p>
+              </div>
+              
+              <div className="bg-white/50 rounded p-3 text-xs">
+                <strong>
+                  {isArabic ? 'يُنصح بشدة بـ:' : 'Strongly recommended to:'}
+                </strong>
+                <ul className="mt-1 space-y-1" dir={isArabic ? 'rtl' : 'ltr'}>
+                  <li>
+                    {isArabic 
+                      ? '• مراجعة طبيب مختص لتفسير النتائج'
+                      : '• Consult a qualified healthcare provider for interpretation'
+                    }
+                  </li>
+                  <li>
+                    {isArabic 
+                      ? '• عدم اتخاذ قرارات علاجية بناءً على هذا التفسير فقط'
+                      : '• Not make treatment decisions based solely on this interpretation'
+                    }
+                  </li>
+                  <li>
+                    {isArabic 
+                      ? '• مناقشة النتائج مع فريقك الطبي'
+                      : '• Discuss results with your medical team'
+                    }
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 

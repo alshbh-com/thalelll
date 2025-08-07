@@ -12,6 +12,8 @@ import UserInfoForm from '@/components/UserInfoForm';
 import FileUploader from '@/components/FileUploader';
 import ManualInput from '@/components/ManualInput';
 import AnalysisResult from '@/components/AnalysisResult';
+import ProgressIndicator from '@/components/ProgressIndicator';
+import MedicalCredibility from '@/components/MedicalCredibility';
 import medicalHeroImage from '@/assets/medical-hero.jpg';
 
 const Index = () => {
@@ -446,6 +448,14 @@ This interpretation is for educational purposes only and does not replace medica
               )}
             </Button>
           </div>
+
+          {/* Progress Indicator */}
+          {isAnalyzing && (
+            <ProgressIndicator isAnalyzing={isAnalyzing} language={language} />
+          )}
+
+          {/* Medical Credibility Section */}
+          <MedicalCredibility language={language} />
 
           {/* Analysis Result */}
           {analysisResult && (
