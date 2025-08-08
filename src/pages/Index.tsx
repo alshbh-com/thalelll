@@ -442,7 +442,7 @@ This interpretation is for educational purposes only and does not replace medica
           </Card>
 
           {/* Analyze Button */}
-          <div className="text-center">
+          <div className="text-center space-y-4">
             <Button
               onClick={handleAnalyze}
               variant="hero"
@@ -461,6 +461,25 @@ This interpretation is for educational purposes only and does not replace medica
                 </>
               )}
             </Button>
+            
+            {/* Medical Assistant Button - Always Available */}
+            <div className="flex justify-center">
+              <Button
+                onClick={() => setIsChatOpen(true)}
+                variant="outline"
+                className="min-w-[200px] border-primary/30 hover:border-primary"
+              >
+                <span>🤖</span>
+                {isArabic ? 'المساعد الطبي الذكي' : 'Smart Medical Assistant'}
+              </Button>
+            </div>
+            
+            <p className="text-sm text-muted-foreground">
+              {isArabic 
+                ? 'يمكنك استخدام المساعد الذكي للاستفسار عن أي معلومات طبية عامة'
+                : 'You can use the smart assistant to ask about general medical information'
+              }
+            </p>
           </div>
 
           {/* Progress Indicator */}
@@ -468,37 +487,75 @@ This interpretation is for educational purposes only and does not replace medica
             <ProgressIndicator isAnalyzing={isAnalyzing} language={language} />
           )}
 
-          {/* Features Showcase */}
-          <Card className="soft-shadow bg-gradient-to-r from-primary/5 to-medical/5 border-primary/20">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <h3 className="text-lg font-semibold text-primary">
-                  {isArabic ? '🆕 الميزات الجديدة' : '🆕 New Features'}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                  <div className="flex items-center gap-2 text-primary">
-                    <span>📊</span>
-                    <span>{isArabic ? 'تحليل منظم بالألوان' : 'Structured Analysis'}</span>
+          {/* Quick Demo Features - Show what's new */}
+          <Card className="soft-shadow border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-center">
+                {isArabic ? '✨ جرب الميزات الجديدة' : '✨ Try New Features'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button
+                  onClick={() => setIsChatOpen(true)}
+                  variant="outline"
+                  className="h-20 flex-col space-y-2 border-medical/30 hover:border-medical"
+                >
+                  <span className="text-2xl">🤖</span>
+                  <div className="text-center">
+                    <div className="font-medium">{isArabic ? 'المساعد الذكي' : 'Smart Assistant'}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {isArabic ? 'اسأل أي سؤال طبي' : 'Ask any medical question'}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-medical">
-                    <span>🤖</span>
-                    <span>{isArabic ? 'مساعد ذكي للمحادثة' : 'Smart Chat Assistant'}</span>
+                </Button>
+                
+                <Button
+                  onClick={() => {
+                    // Mock demo data to show features
+                    const demoAnalysis = {
+                      summary: isArabic 
+                        ? "تحليل تجريبي - جميع القيم ضمن المعدل الطبيعي وتشير إلى حالة صحية جيدة"
+                        : "Demo analysis - All values within normal range indicating good health",
+                      riskScore: 85,
+                      riskLevel: "low" as const,
+                      testResults: [
+                        {
+                          name: isArabic ? "الهيموجلوبين" : "Hemoglobin",
+                          value: "13.5",
+                          unit: "g/dL",
+                          normalRange: "12-16",
+                          status: "normal" as const,
+                          medicalExplanation: isArabic 
+                            ? "الهيموجلوبين هو البروتين المسؤول عن نقل الأكسجين في الدم"
+                            : "Hemoglobin is the protein responsible for carrying oxygen in blood",
+                          simpleExplanation: isArabic
+                            ? "مستوى الدم طبيعي وصحي"
+                            : "Blood level is normal and healthy"
+                        }
+                      ],
+                      abnormalValues: [],
+                      suggestions: [
+                        isArabic ? "حافظ على نمط حياة صحي" : "Maintain healthy lifestyle",
+                        isArabic ? "اشرب الماء بكثرة" : "Stay hydrated"
+                      ],
+                      recommendedTests: [],
+                      specialistConsultation: null
+                    };
+                    setStructuredAnalysis(demoAnalysis);
+                    setResultId('demo-' + Date.now());
+                  }}
+                  variant="outline"
+                  className="h-20 flex-col space-y-2 border-primary/30 hover:border-primary"
+                >
+                  <span className="text-2xl">📊</span>
+                  <div className="text-center">
+                    <div className="font-medium">{isArabic ? 'تحليل تجريبي' : 'Demo Analysis'}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {isArabic ? 'شوف التحليل الجديد' : 'See new analysis format'}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-primary">
-                    <span>📈</span>
-                    <span>{isArabic ? 'مقارنات تاريخية' : 'Historical Trends'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-medical">
-                    <span>🔒</span>
-                    <span>{isArabic ? 'إعدادات خصوصية' : 'Privacy Controls'}</span>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {isArabic 
-                    ? 'ارفع تحليل جديد لتجربة جميع الميزات الجديدة!'
-                    : 'Upload a new analysis to experience all the new features!'
-                  }
-                </p>
+                </Button>
               </div>
             </CardContent>
           </Card>
