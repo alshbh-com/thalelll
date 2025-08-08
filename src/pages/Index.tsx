@@ -12,9 +12,12 @@ import UserInfoForm from '@/components/UserInfoForm';
 import FileUploader from '@/components/FileUploader';
 import ManualInput from '@/components/ManualInput';
 import AnalysisResult from '@/components/AnalysisResult';
+import StructuredAnalysisResult from '@/components/StructuredAnalysisResult';
+import MedicalChatAssistant from '@/components/MedicalChatAssistant';
+import HistoricalComparison from '@/components/HistoricalComparison';
+import PrivacySettings from '@/components/PrivacySettings';
 import ProgressIndicator from '@/components/ProgressIndicator';
 import MedicalCredibility from '@/components/MedicalCredibility';
-import MedicalChat from '@/components/MedicalChat';
 import medicalHeroImage from '@/assets/medical-hero.jpg';
 
 const Index = () => {
@@ -27,6 +30,9 @@ const Index = () => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [manualInput, setManualInput] = useState('');
   const [analysisResult, setAnalysisResult] = useState('');
+  const [structuredAnalysis, setStructuredAnalysis] = useState(null);
+  const [resultId, setResultId] = useState<string>('');
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -176,7 +182,14 @@ This interpretation is for educational purposes only and does not replace medica
           variant: "destructive",
         });
       } else {
-        setAnalysisResult(data.analysis);
+        if (data.isStructured && typeof data.analysis === 'object') {
+          setStructuredAnalysis(data.analysis);
+          setAnalysisResult('');
+        } else {
+          setAnalysisResult(typeof data.analysis === 'string' ? data.analysis : JSON.stringify(data.analysis));
+          setStructuredAnalysis(null);
+        }
+        setResultId(data.resultId || '');
         
         toast({
           title: isArabic ? "تم التحليل بنجاح" : "Analysis Complete",
@@ -459,19 +472,41 @@ This interpretation is for educational purposes only and does not replace medica
           <MedicalCredibility language={language} />
 
           {/* Analysis Result */}
-          {analysisResult && (
-            <div ref={resultsRef}>
-              <AnalysisResult
-                result={analysisResult}
-                language={language}
-                onDownloadPDF={handleDownloadPDF}
-              />
+          {(analysisResult || structuredAnalysis) && (
+            <div ref={resultsRef} className="space-y-6">
+              {structuredAnalysis ? (
+                <StructuredAnalysisResult
+                  analysis={structuredAnalysis}
+                  language={language}
+                  resultId={resultId}
+                  onDownloadPDF={handleDownloadPDF}
+                  onOpenChat={() => setIsChatOpen(true)}
+                />
+              ) : (
+                <AnalysisResult
+                  result={analysisResult}
+                  language={language}
+                  onDownloadPDF={handleDownloadPDF}
+                />
+              )}
+              
+              {/* Historical Comparison */}
+              <HistoricalComparison language={language} currentAnalysisId={resultId} />
+              
+              {/* Privacy Settings */}
+              <PrivacySettings language={language} />
             </div>
           )}
         </div>
       </div>
 
-      <MedicalChat language={language} />
+      {/* Medical Chat Assistant */}
+      <MedicalChatAssistant
+        language={language}
+        analysisResultId={resultId}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
     </div>
   );
 };
