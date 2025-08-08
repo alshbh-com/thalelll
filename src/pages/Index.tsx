@@ -468,33 +468,77 @@ This interpretation is for educational purposes only and does not replace medica
             <ProgressIndicator isAnalyzing={isAnalyzing} language={language} />
           )}
 
-          {/* Medical Credibility Section */}
-          <MedicalCredibility language={language} />
+          {/* Features Showcase */}
+          <Card className="soft-shadow bg-gradient-to-r from-primary/5 to-medical/5 border-primary/20">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <h3 className="text-lg font-semibold text-primary">
+                  {isArabic ? '🆕 الميزات الجديدة' : '🆕 New Features'}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                  <div className="flex items-center gap-2 text-primary">
+                    <span>📊</span>
+                    <span>{isArabic ? 'تحليل منظم بالألوان' : 'Structured Analysis'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-medical">
+                    <span>🤖</span>
+                    <span>{isArabic ? 'مساعد ذكي للمحادثة' : 'Smart Chat Assistant'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-primary">
+                    <span>📈</span>
+                    <span>{isArabic ? 'مقارنات تاريخية' : 'Historical Trends'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-medical">
+                    <span>🔒</span>
+                    <span>{isArabic ? 'إعدادات خصوصية' : 'Privacy Controls'}</span>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {isArabic 
+                    ? 'ارفع تحليل جديد لتجربة جميع الميزات الجديدة!'
+                    : 'Upload a new analysis to experience all the new features!'
+                  }
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Medical Credibility Section - Move after main content */}
+          {!analysisResult && !structuredAnalysis && (
+            <MedicalCredibility language={language} />
+          )}
 
           {/* Analysis Result */}
           {(analysisResult || structuredAnalysis) && (
             <div ref={resultsRef} className="space-y-6">
               {structuredAnalysis ? (
-                <StructuredAnalysisResult
-                  analysis={structuredAnalysis}
-                  language={language}
-                  resultId={resultId}
-                  onDownloadPDF={handleDownloadPDF}
-                  onOpenChat={() => setIsChatOpen(true)}
-                />
+                <>
+                  <StructuredAnalysisResult
+                    analysis={structuredAnalysis}
+                    language={language}
+                    resultId={resultId}
+                    onDownloadPDF={handleDownloadPDF}
+                    onOpenChat={() => setIsChatOpen(true)}
+                  />
+                  
+                  {/* Historical Comparison - Only show if user has previous data */}
+                  <HistoricalComparison language={language} currentAnalysisId={resultId} />
+                  
+                  {/* Privacy Settings */}
+                  <PrivacySettings language={language} />
+                </>
               ) : (
-                <AnalysisResult
-                  result={analysisResult}
-                  language={language}
-                  onDownloadPDF={handleDownloadPDF}
-                />
+                <>
+                  <AnalysisResult
+                    result={analysisResult}
+                    language={language}
+                    onDownloadPDF={handleDownloadPDF}
+                  />
+                  
+                  {/* Add basic privacy settings for legacy results too */}
+                  <PrivacySettings language={language} />
+                </>
               )}
-              
-              {/* Historical Comparison */}
-              <HistoricalComparison language={language} currentAnalysisId={resultId} />
-              
-              {/* Privacy Settings */}
-              <PrivacySettings language={language} />
             </div>
           )}
         </div>
