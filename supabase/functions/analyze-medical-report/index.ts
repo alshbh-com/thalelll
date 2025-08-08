@@ -43,96 +43,37 @@ serve(async (req) => {
       userId = user?.id || null;
     }
 
-    // Create enhanced prompt for structured analysis based on language
+
+    // Create prompt for Gemini based on language
     const isArabic = language === 'ar';
     const systemPrompt = isArabic 
-      ? `أنت طبيب مختص في تفسير التحاليل الطبية. قم بتحليل التحاليل التالية وأرجع النتيجة بصيغة JSON منظمة باللغة العربية.
+      ? `أنت طبيب مختص في تفسير التحاليل الطبية. قم بتحليل التحاليل التالية وقدم تفسيرًا مبسطًا وواضحًا باللغة العربية. 
 
 معلومات المريض: العمر ${userAge || 'غير محدد'}, الجنس: ${userGender === 'male' ? 'ذكر' : userGender === 'female' ? 'أنثى' : 'غير محدد'}
 
-يجب أن يكون الرد بصيغة JSON تحتوي على:
-{
-  "summary": "ملخص عام للحالة الصحية",
-  "riskScore": رقم من 0 إلى 100 (0 = خطر عالي، 100 = آمن تماماً),
-  "riskLevel": "low" أو "medium" أو "high",
-  "testResults": [
-    {
-      "name": "اسم التحليل",
-      "value": "القيمة",
-      "unit": "الوحدة",
-      "normalRange": "المعدل الطبيعي",
-      "status": "normal" أو "high" أو "low",
-      "medicalExplanation": "تفسير طبي دقيق",
-      "simpleExplanation": "تفسير مبسط للمريض العادي"
-    }
-  ],
-  "abnormalValues": [
-    {
-      "testName": "اسم التحليل",
-      "currentValue": "القيمة الحالية",
-      "normalRange": "المعدل الطبيعي",
-      "severity": "mild" أو "moderate" أو "severe",
-      "explanation": "سبب الارتفاع أو الانخفاض"
-    }
-  ],
-  "suggestions": [
-    "نصيحة 1",
-    "نصيحة 2"
-  ],
-  "recommendedTests": [
-    "تحليل إضافي مقترح 1",
-    "تحليل إضافي مقترح 2"
-  ],
-  "specialistConsultation": "نوع الطبيب المختص المطلوب إن وجد أو null"
-}
+يجب أن يتضمن التحليل:
+1. شرح مبسط لكل تحليل
+2. هل القيم ضمن المعدل الطبيعي أم لا
+3. الأسباب المحتملة للارتفاع أو الانخفاض
+4. نصائح عامة
 
 مهم جداً: 
-- أرجع JSON صالح فقط بدون أي نص إضافي
-- لا تقدم تشخيص طبي مباشر
-- استخدم لغة عربية بسيطة ومفهومة`
-      : `You are a medical expert specializing in interpreting lab results. Analyze the following medical tests and return a structured JSON response in English.
+- لا تقدم أي تشخيص طبي
+- أضف في النهاية: "هذه المعلومات تعليمية فقط. يُنصح بمراجعة الطبيب المختص لتفسير دقيق وخطة علاجية."
+- استخدم لغة بسيطة ومفهومة`
+      : `You are a medical expert specializing in interpreting lab results. Analyze the following medical tests and provide a clear, simplified explanation in English.
 
 Patient information: Age ${userAge || 'not specified'}, Gender: ${userGender || 'not specified'}
 
-Return a JSON response with this structure:
-{
-  "summary": "General health status summary",
-  "riskScore": number from 0 to 100 (0 = high risk, 100 = completely safe),
-  "riskLevel": "low" or "medium" or "high",
-  "testResults": [
-    {
-      "name": "Test name",
-      "value": "Result value",
-      "unit": "Unit of measurement",
-      "normalRange": "Normal range",
-      "status": "normal" or "high" or "low",
-      "medicalExplanation": "Precise medical explanation",
-      "simpleExplanation": "Simple explanation for regular patients"
-    }
-  ],
-  "abnormalValues": [
-    {
-      "testName": "Test name",
-      "currentValue": "Current value",
-      "normalRange": "Normal range",
-      "severity": "mild" or "moderate" or "severe",
-      "explanation": "Reason for elevation or decrease"
-    }
-  ],
-  "suggestions": [
-    "Recommendation 1",
-    "Recommendation 2"
-  ],
-  "recommendedTests": [
-    "Suggested additional test 1",
-    "Suggested additional test 2"
-  ],
-  "specialistConsultation": "Type of specialist required if any, or null"
-}
+Your analysis should include:
+1. Simple explanation of each test
+2. Whether values are within normal range
+3. Possible causes for high or low values
+4. General recommendations
 
 Important:
-- Return valid JSON only without additional text
-- Do NOT provide direct medical diagnosis
+- Do NOT provide medical diagnosis
+- End with: "This information is educational only. Please consult with a healthcare professional for accurate interpretation and treatment plan."
 - Use simple, understandable language`;
 
     // Check if report text contains image data
@@ -162,7 +103,7 @@ Important:
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 4096,
+          maxOutputTokens: 2048,
         }
       };
     } else {
@@ -181,15 +122,15 @@ ${reportText}`;
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 4096,
+          maxOutputTokens: 2048,
         }
       };
     }
 
     console.log('Sending request to Gemini API...');
 
-    // Call Gemini API
-    const modelName = 'gemini-1.5-flash-latest';
+    // Call Gemini API with the appropriate model (vision model for images)
+    const modelName = isImageData ? 'gemini-1.5-flash-latest' : 'gemini-1.5-flash-latest';
     const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
@@ -208,34 +149,13 @@ ${reportText}`;
     }
 
     const geminiData = await geminiResponse.json();
-    const analysisText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+    const analysisResult = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (!analysisText) {
+    if (!analysisResult) {
       return new Response(JSON.stringify({ error: 'No analysis result from AI' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
-    }
-
-    // Try to parse the JSON response
-    let analysisResult;
-    try {
-      // Clean up the response text in case it has markdown formatting
-      const cleanText = analysisText.replace(/```json\n?|\n?```/g, '').trim();
-      analysisResult = JSON.parse(cleanText);
-    } catch (parseError) {
-      console.error('Failed to parse JSON from Gemini:', parseError);
-      // Fallback to plain text analysis
-      analysisResult = {
-        summary: analysisText,
-        riskScore: 75,
-        riskLevel: "medium",
-        testResults: [],
-        abnormalValues: [],
-        suggestions: [isArabic ? "يُنصح بمراجعة طبيب مختص" : "Please consult a healthcare professional"],
-        recommendedTests: [],
-        specialistConsultation: null
-      };
     }
 
     // Save analysis result to database only if user is authenticated
@@ -249,12 +169,11 @@ ${reportText}`;
           user_id: userId,
           input_type: inputType || 'manual',
           original_text: reportText,
-          analysis_result: { text: analysisText },
-          structured_data: analysisResult,
-          risk_score: analysisResult.riskScore || null,
-          risk_level: analysisResult.riskLevel || null,
-          suggestions: analysisResult.suggestions || [],
-          abnormal_values: analysisResult.abnormalValues || [],
+          analysis_result: {
+            text: analysisResult,
+            timestamp: new Date().toISOString(),
+            model: 'gemini-1.5-flash-latest'
+          },
           user_age: userAge,
           user_gender: userGender,
           language: language || 'ar'
@@ -264,7 +183,7 @@ ${reportText}`;
 
       if (saveError) {
         console.error('Error saving analysis result:', saveError);
-        // Continue without saving if there's an error
+        // Continue without saving if user is not authenticated
       } else {
         savedResult = data;
       }
@@ -274,8 +193,7 @@ ${reportText}`;
 
     return new Response(JSON.stringify({ 
       analysis: analysisResult,
-      resultId: savedResult?.id,
-      isStructured: true
+      resultId: savedResult?.id
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

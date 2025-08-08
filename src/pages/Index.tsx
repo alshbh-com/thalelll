@@ -12,10 +12,6 @@ import UserInfoForm from '@/components/UserInfoForm';
 import FileUploader from '@/components/FileUploader';
 import ManualInput from '@/components/ManualInput';
 import AnalysisResult from '@/components/AnalysisResult';
-import StructuredAnalysisResult from '@/components/StructuredAnalysisResult';
-import MedicalChatAssistant from '@/components/MedicalChatAssistant';
-import HistoricalComparison from '@/components/HistoricalComparison';
-import PrivacySettings from '@/components/PrivacySettings';
 import ProgressIndicator from '@/components/ProgressIndicator';
 import MedicalCredibility from '@/components/MedicalCredibility';
 import medicalHeroImage from '@/assets/medical-hero.jpg';
@@ -30,9 +26,6 @@ const Index = () => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [manualInput, setManualInput] = useState('');
   const [analysisResult, setAnalysisResult] = useState('');
-  const [structuredAnalysis, setStructuredAnalysis] = useState(null);
-  const [resultId, setResultId] = useState<string>('');
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -182,14 +175,7 @@ This interpretation is for educational purposes only and does not replace medica
           variant: "destructive",
         });
       } else {
-        if (data.isStructured && typeof data.analysis === 'object') {
-          setStructuredAnalysis(data.analysis);
-          setAnalysisResult('');
-        } else {
-          setAnalysisResult(typeof data.analysis === 'string' ? data.analysis : JSON.stringify(data.analysis));
-          setStructuredAnalysis(null);
-        }
-        setResultId(data.resultId || '');
+        setAnalysisResult(data.analysis);
         
         toast({
           title: isArabic ? "تم التحليل بنجاح" : "Analysis Complete",
@@ -442,7 +428,7 @@ This interpretation is for educational purposes only and does not replace medica
           </Card>
 
           {/* Analyze Button */}
-          <div className="text-center space-y-4">
+          <div className="text-center">
             <Button
               onClick={handleAnalyze}
               variant="hero"
@@ -461,25 +447,6 @@ This interpretation is for educational purposes only and does not replace medica
                 </>
               )}
             </Button>
-            
-            {/* Medical Assistant Button - Always Available */}
-            <div className="flex justify-center">
-              <Button
-                onClick={() => setIsChatOpen(true)}
-                variant="outline"
-                className="min-w-[200px] border-primary/30 hover:border-primary"
-              >
-                <span>🤖</span>
-                {isArabic ? 'المساعد الطبي الذكي' : 'Smart Medical Assistant'}
-              </Button>
-            </div>
-            
-            <p className="text-sm text-muted-foreground">
-              {isArabic 
-                ? 'يمكنك استخدام المساعد الذكي للاستفسار عن أي معلومات طبية عامة'
-                : 'You can use the smart assistant to ask about general medical information'
-              }
-            </p>
           </div>
 
           {/* Progress Indicator */}
@@ -487,127 +454,21 @@ This interpretation is for educational purposes only and does not replace medica
             <ProgressIndicator isAnalyzing={isAnalyzing} language={language} />
           )}
 
-          {/* Quick Demo Features - Show what's new */}
-          <Card className="soft-shadow border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-center">
-                {isArabic ? '✨ جرب الميزات الجديدة' : '✨ Try New Features'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button
-                  onClick={() => setIsChatOpen(true)}
-                  variant="outline"
-                  className="h-20 flex-col space-y-2 border-medical/30 hover:border-medical"
-                >
-                  <span className="text-2xl">🤖</span>
-                  <div className="text-center">
-                    <div className="font-medium">{isArabic ? 'المساعد الذكي' : 'Smart Assistant'}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {isArabic ? 'اسأل أي سؤال طبي' : 'Ask any medical question'}
-                    </div>
-                  </div>
-                </Button>
-                
-                <Button
-                  onClick={() => {
-                    // Mock demo data to show features
-                    const demoAnalysis = {
-                      summary: isArabic 
-                        ? "تحليل تجريبي - جميع القيم ضمن المعدل الطبيعي وتشير إلى حالة صحية جيدة"
-                        : "Demo analysis - All values within normal range indicating good health",
-                      riskScore: 85,
-                      riskLevel: "low" as const,
-                      testResults: [
-                        {
-                          name: isArabic ? "الهيموجلوبين" : "Hemoglobin",
-                          value: "13.5",
-                          unit: "g/dL",
-                          normalRange: "12-16",
-                          status: "normal" as const,
-                          medicalExplanation: isArabic 
-                            ? "الهيموجلوبين هو البروتين المسؤول عن نقل الأكسجين في الدم"
-                            : "Hemoglobin is the protein responsible for carrying oxygen in blood",
-                          simpleExplanation: isArabic
-                            ? "مستوى الدم طبيعي وصحي"
-                            : "Blood level is normal and healthy"
-                        }
-                      ],
-                      abnormalValues: [],
-                      suggestions: [
-                        isArabic ? "حافظ على نمط حياة صحي" : "Maintain healthy lifestyle",
-                        isArabic ? "اشرب الماء بكثرة" : "Stay hydrated"
-                      ],
-                      recommendedTests: [],
-                      specialistConsultation: null
-                    };
-                    setStructuredAnalysis(demoAnalysis);
-                    setResultId('demo-' + Date.now());
-                  }}
-                  variant="outline"
-                  className="h-20 flex-col space-y-2 border-primary/30 hover:border-primary"
-                >
-                  <span className="text-2xl">📊</span>
-                  <div className="text-center">
-                    <div className="font-medium">{isArabic ? 'تحليل تجريبي' : 'Demo Analysis'}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {isArabic ? 'شوف التحليل الجديد' : 'See new analysis format'}
-                    </div>
-                  </div>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Medical Credibility Section - Move after main content */}
-          {!analysisResult && !structuredAnalysis && (
-            <MedicalCredibility language={language} />
-          )}
+          {/* Medical Credibility Section */}
+          <MedicalCredibility language={language} />
 
           {/* Analysis Result */}
-          {(analysisResult || structuredAnalysis) && (
-            <div ref={resultsRef} className="space-y-6">
-              {structuredAnalysis ? (
-                <>
-                  <StructuredAnalysisResult
-                    analysis={structuredAnalysis}
-                    language={language}
-                    resultId={resultId}
-                    onDownloadPDF={handleDownloadPDF}
-                    onOpenChat={() => setIsChatOpen(true)}
-                  />
-                  
-                  {/* Historical Comparison - Only show if user has previous data */}
-                  <HistoricalComparison language={language} currentAnalysisId={resultId} />
-                  
-                  {/* Privacy Settings */}
-                  <PrivacySettings language={language} />
-                </>
-              ) : (
-                <>
-                  <AnalysisResult
-                    result={analysisResult}
-                    language={language}
-                    onDownloadPDF={handleDownloadPDF}
-                  />
-                  
-                  {/* Add basic privacy settings for legacy results too */}
-                  <PrivacySettings language={language} />
-                </>
-              )}
+          {analysisResult && (
+            <div ref={resultsRef}>
+              <AnalysisResult
+                result={analysisResult}
+                language={language}
+                onDownloadPDF={handleDownloadPDF}
+              />
             </div>
           )}
         </div>
       </div>
-
-      {/* Medical Chat Assistant */}
-      <MedicalChatAssistant
-        language={language}
-        analysisResultId={resultId}
-        isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
-      />
     </div>
   );
 };

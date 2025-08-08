@@ -16,133 +16,68 @@ export type Database = {
     Tables: {
       analysis_results: {
         Row: {
-          abnormal_values: Json | null
           analysis_result: Json
-          auto_delete_at: string | null
           created_at: string | null
           id: string
           input_type: string
           language: string | null
           original_text: string
-          risk_level: string | null
-          risk_score: number | null
-          structured_data: Json | null
-          suggestions: string[] | null
           user_age: number | null
           user_gender: string | null
           user_id: string
         }
         Insert: {
-          abnormal_values?: Json | null
           analysis_result: Json
-          auto_delete_at?: string | null
           created_at?: string | null
           id?: string
           input_type: string
           language?: string | null
           original_text: string
-          risk_level?: string | null
-          risk_score?: number | null
-          structured_data?: Json | null
-          suggestions?: string[] | null
           user_age?: number | null
           user_gender?: string | null
           user_id: string
         }
         Update: {
-          abnormal_values?: Json | null
           analysis_result?: Json
-          auto_delete_at?: string | null
           created_at?: string | null
           id?: string
           input_type?: string
           language?: string | null
           original_text?: string
-          risk_level?: string | null
-          risk_score?: number | null
-          structured_data?: Json | null
-          suggestions?: string[] | null
           user_age?: number | null
           user_gender?: string | null
           user_id?: string
         }
         Relationships: []
       }
-      chat_messages: {
-        Row: {
-          analysis_result_id: string | null
-          content: string
-          created_at: string
-          id: string
-          language: string
-          message_type: string
-          user_id: string
-        }
-        Insert: {
-          analysis_result_id?: string | null
-          content: string
-          created_at?: string
-          id?: string
-          language?: string
-          message_type: string
-          user_id: string
-        }
-        Update: {
-          analysis_result_id?: string | null
-          content?: string
-          created_at?: string
-          id?: string
-          language?: string
-          message_type?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_messages_analysis_result_id_fkey"
-            columns: ["analysis_result_id"]
-            isOneToOne: false
-            referencedRelation: "analysis_results"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           age: number | null
-          auto_delete_days: number | null
           created_at: string | null
           full_name: string | null
           gender: string | null
           id: string
-          preferred_explanation_style: string | null
           preferred_language: string | null
-          privacy_mode: boolean | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           age?: number | null
-          auto_delete_days?: number | null
           created_at?: string | null
           full_name?: string | null
           gender?: string | null
           id?: string
-          preferred_explanation_style?: string | null
           preferred_language?: string | null
-          privacy_mode?: boolean | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           age?: number | null
-          auto_delete_days?: number | null
           created_at?: string | null
           full_name?: string | null
           gender?: string | null
           id?: string
-          preferred_explanation_style?: string | null
           preferred_language?: string | null
-          privacy_mode?: boolean | null
           updated_at?: string | null
           user_id?: string
         }
@@ -197,10 +132,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cleanup_expired_analysis_results: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
