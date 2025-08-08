@@ -14,6 +14,7 @@ import ManualInput from '@/components/ManualInput';
 import AnalysisResult from '@/components/AnalysisResult';
 import ProgressIndicator from '@/components/ProgressIndicator';
 import MedicalCredibility from '@/components/MedicalCredibility';
+import MedicalChat from '@/components/MedicalChat';
 import medicalHeroImage from '@/assets/medical-hero.jpg';
 
 const Index = () => {
@@ -469,6 +470,8 @@ This interpretation is for educational purposes only and does not replace medica
           )}
         </div>
       </div>
+
+      <MedicalChat language={language} />
     </div>
   );
 };
